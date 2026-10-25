@@ -4,102 +4,590 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>William Soto Games</title>
-  <meta name="description" content="Estudio independiente de videojuegos para móviles. Creadores de Última Señal, un juego de supervivencia 3D.">
+  <meta name="description" content="Estudio independiente de videojuegos 3D para Android. Creadores de Última Señal.">
+  <meta name="theme-color" content="#05070b">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05070b;
+      --panel: rgba(12, 16, 24, 0.78);
+      --line: rgba(255, 255, 255, 0.09);
+      --text: #eef2f7;
+      --muted: #94a0b0;
+      --amber: #ffb020;
+      --amber-2: #ff7a18;
+      --teal: #2ee6c8;
+      --red: #ff3b4e;
+      --glow: rgba(255, 176, 32, 0.45);
+      --max: 1180px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: "Inter", system-ui, sans-serif; line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+    .display { font-family: "Bebas Neue", sans-serif; letter-spacing: 1.5px; line-height: 0.92; }
+
+    /* 3D background */
+    #scene { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block;
+      background: radial-gradient(ellipse at 50% 30%, #1a1408 0%, #05070b 60%); }
+    .vignette { position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.75) 100%); }
+    .grain { position: fixed; inset: -50%; z-index: 2; pointer-events: none; opacity: 0.06;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation: grain 0.6s steps(4) infinite; }
+    @keyframes grain { 0%{transform:translate(0,0)} 25%{transform:translate(-3%,2%)} 50%{transform:translate(2%,-3%)} 75%{transform:translate(-2%,-1%)} 100%{transform:translate(0,0)} }
+    main, header, footer { position: relative; z-index: 3; }
+
+    /* Loader */
+    #loader { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: grid; place-items: center;
+      transition: opacity 0.8s ease, visibility 0.8s; }
+    #loader.done { opacity: 0; visibility: hidden; }
+    .loader-box { text-align: center; }
+    .loader-box .display { font-size: 2.4rem; }
+    .loader-bar { width: 220px; height: 3px; background: var(--line); margin: 16px auto 10px; border-radius: 3px; overflow: hidden; }
+    .loader-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--amber), var(--red)); box-shadow: 0 0 12px var(--glow); transition: width 0.3s; }
+    .loader-box small { color: var(--muted); letter-spacing: 3px; font-size: 0.7rem; }
+
+    /* Header */
+    header.top { position: fixed; top: 0; left: 0; right: 0; z-index: 20; transition: background 0.3s, border-color 0.3s;
+      border-bottom: 1px solid transparent; }
+    header.top.scrolled { background: rgba(5, 7, 11, 0.78); backdrop-filter: blur(12px); border-color: var(--line); }
+    header.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: 1px; font-size: 0.95rem; }
+    .logo { width: 36px; height: 36px; border-radius: 10px; position: relative;
+      background: linear-gradient(135deg, #1b2230, #090c12); border: 1px solid var(--line); }
+    .logo::before { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px;
+      border-radius: 50%; background: var(--amber); box-shadow: 0 0 16px 4px var(--glow); animation: blink 2s infinite; }
+    .logo::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; border: 1.5px solid rgba(255,176,32,0.4);
+      animation: ring 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    @keyframes ring { 0%{transform:scale(0.5);opacity:1} 100%{transform:scale(1.4);opacity:0} }
+    nav { display: flex; gap: 26px; }
+    nav a { color: var(--muted); font-size: 0.92rem; font-weight: 500; position: relative; transition: color 0.2s; }
+    nav a::after { content: ""; position: absolute; left: 0; bottom: -4px; height: 2px; width: 0; background: var(--amber); transition: width 0.25s; }
+    nav a:hover { color: var(--text); }
+    nav a:hover::after { width: 100%; }
+
+    /* Hero */
+    .hero { min-height: 100vh; display: flex; align-items: center; padding: 110px 0 70px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px; border-radius: 99px;
+      background: rgba(255,176,32,0.08); border: 1px solid rgba(255,176,32,0.3); color: var(--amber);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px var(--red); animation: blink 1.2s infinite; }
+    .hero h1 { font-size: clamp(3.6rem, 12vw, 9.5rem); margin: 22px 0 18px; text-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+    .hero h1 .lit { color: var(--amber); text-shadow: 0 0 24px var(--glow), 0 0 80px rgba(255,122,24,0.35); animation: flicker 5s infinite; }
+    @keyframes flicker { 0%,92%,100%{opacity:1} 93%{opacity:0.4} 94%{opacity:1} 96%{opacity:0.6} 97%{opacity:1} }
+    .hero p.lead { max-width: 560px; color: #c3ccd8; font-size: 1.15rem; text-shadow: 0 2px 12px rgba(0,0,0,0.8); }
+    .btns { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 34px; }
+    .btn { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 15px 26px; border-radius: 12px;
+      font-weight: 700; font-size: 0.95rem; border: 1px solid var(--line); background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(8px); transition: transform 0.2s, box-shadow 0.2s, background 0.2s; overflow: hidden; }
+    .btn:hover { transform: translateY(-3px); background: rgba(255,255,255,0.08); }
+    .btn.primary { background: linear-gradient(135deg, var(--amber), var(--amber-2)); color: #140c00; border: none;
+      box-shadow: 0 10px 34px rgba(255,140,20,0.4); }
+    .btn.primary:hover { box-shadow: 0 14px 44px rgba(255,140,20,0.6); }
+    .btn.primary::after { content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); transform: skewX(-20deg);
+      animation: shine 3.5s infinite; }
+    @keyframes shine { 0%{left:-60%} 30%,100%{left:130%} }
+    .scroll-hint { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); color: var(--muted);
+      font-size: 0.7rem; letter-spacing: 3px; text-align: center; }
+    .scroll-hint i { display: block; width: 22px; height: 36px; border: 2px solid var(--muted); border-radius: 12px; margin: 8px auto 0; position: relative; }
+    .scroll-hint i::after { content: ""; position: absolute; left: 50%; top: 6px; width: 3px; height: 7px; margin-left: -1.5px;
+      background: var(--amber); border-radius: 2px; animation: wheel 1.6s infinite; }
+    @keyframes wheel { 0%{transform:translateY(0);opacity:1} 100%{transform:translateY(12px);opacity:0} }
+
+    /* Marquee */
+    .marquee { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: rgba(255,176,32,0.95);
+      color: #120a00; overflow: hidden; white-space: nowrap; padding: 12px 0; transform: rotate(-1.2deg) scale(1.02); }
+    .marquee div { display: inline-block; animation: marquee 28s linear infinite; }
+    .marquee span { font-family: "Bebas Neue", sans-serif; font-size: 1.6rem; letter-spacing: 2px; margin: 0 22px; }
+    @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    /* Sections */
+    section.block { padding: 120px 0; }
+    section.solid { background: linear-gradient(180deg, rgba(5,7,11,0.92), rgba(5,7,11,0.97)); border-top: 1px solid var(--line); }
+    .label { color: var(--amber); font-size: 0.78rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 14px; }
+    h2.display { font-size: clamp(2.8rem, 7vw, 5rem); margin-bottom: 18px; }
+    .sub { color: var(--muted); max-width: 620px; font-size: 1.05rem; }
+
+    /* Game section */
+    .game-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 56px; align-items: center; margin-top: 56px; }
+    .trailer { position: relative; aspect-ratio: 16/9; border-radius: 18px; overflow: hidden; border: 1px solid var(--line);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,176,32,0.08); background: #000; }
+    .trailer canvas { width: 100%; height: 100%; display: block; }
+    .trailer .hud { position: absolute; inset: 0; pointer-events: none; padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+    .hud-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; letter-spacing: 2px; font-weight: 700; }
+    .rec { color: var(--red); display: flex; align-items: center; gap: 6px; }
+    .rec::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: blink 1s infinite; }
+    .signal-meter { display: flex; gap: 3px; align-items: flex-end; }
+    .signal-meter b { width: 4px; background: var(--teal); border-radius: 1px; animation: meter 1.4s infinite ease-in-out; box-shadow: 0 0 6px var(--teal); }
+    .signal-meter b:nth-child(1){height:6px} .signal-meter b:nth-child(2){height:10px;animation-delay:.15s}
+    .signal-meter b:nth-child(3){height:14px;animation-delay:.3s} .signal-meter b:nth-child(4){height:18px;animation-delay:.45s}
+    @keyframes meter { 0%,100%{opacity:1} 50%{opacity:0.25} }
+    .hud-tag { background: rgba(0,0,0,0.55); border: 1px solid var(--line); padding: 4px 10px; border-radius: 6px; color: var(--text); }
+    .game-title { font-size: clamp(3rem, 6vw, 4.6rem); }
+    .status { display: inline-flex; gap: 8px; align-items: center; color: var(--teal); font-size: 0.8rem; font-weight: 700; letter-spacing: 2px; margin: 10px 0 18px; }
+    .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 10px var(--teal); }
+    .game-copy p { color: #b9c3cf; margin-bottom: 14px; }
+    .game-copy strong { color: var(--amber); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .chip { font-size: 0.78rem; font-weight: 600; padding: 7px 13px; border-radius: 99px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); }
+
+    /* Window section (shows 3D scene through) */
+    .window { min-height: 80vh; display: flex; align-items: center; text-align: center; }
+    .window .quote { font-size: clamp(2.6rem, 8vw, 6.5rem); text-shadow: 0 6px 40px rgba(0,0,0,0.9); }
+    .window .quote span { color: var(--amber); text-shadow: 0 0 30px var(--glow); }
+    .window p { color: #c3ccd8; margin-top: 16px; font-size: 1.1rem; text-shadow: 0 2px 10px #000; }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 56px; perspective: 1000px; }
+    .card { position: relative; padding: 32px 28px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line);
+      backdrop-filter: blur(10px); transform-style: preserve-3d; transition: transform 0.15s ease-out, border-color 0.3s; overflow: hidden; }
+    .card:hover { border-color: rgba(255,176,32,0.35); }
+    .card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,176,32,0.16), transparent 50%);
+      opacity: 0; transition: opacity 0.3s; }
+    .card:hover::before { opacity: 1; }
+    .card .ico { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; margin-bottom: 20px;
+      background: linear-gradient(135deg, rgba(255,176,32,0.2), rgba(255,59,78,0.12)); border: 1px solid rgba(255,176,32,0.3); transform: translateZ(30px); }
+    .card .ico svg { width: 26px; height: 26px; stroke: var(--amber); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .card h3 { font-size: 1.2rem; margin-bottom: 8px; transform: translateZ(20px); }
+    .card p { color: var(--muted); font-size: 0.95rem; transform: translateZ(10px); }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 70px; }
+    .stat { text-align: center; padding: 26px 10px; border-radius: 16px; border: 1px solid var(--line); background: rgba(255,255,255,0.02); }
+    .stat .num { font-family: "Bebas Neue", sans-serif; font-size: 3.4rem; line-height: 1; color: var(--amber); text-shadow: 0 0 24px var(--glow); }
+    .stat .lbl { color: var(--muted); font-size: 0.82rem; letter-spacing: 1px; margin-top: 6px; }
+
+    /* Contact */
+    .contact-box { text-align: center; padding: 70px 30px; border-radius: 24px; position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,176,32,0.12), rgba(255,59,78,0.08)); border: 1px solid rgba(255,176,32,0.25); }
+    .contact-box::before { content: ""; position: absolute; width: 500px; height: 500px; left: 50%; top: -250px; margin-left: -250px;
+      background: radial-gradient(circle, rgba(255,176,32,0.25), transparent 65%); animation: pulse 4s infinite; pointer-events: none; }
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.2);opacity:1} }
+    .contact-box > * { position: relative; }
+    .contact-box .sub { margin: 0 auto 30px; }
+
+    footer { border-top: 1px solid var(--line); background: #040508; padding: 34px 0; color: var(--muted); font-size: 0.88rem; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
+    footer nav { gap: 20px; }
+
+    /* Reveal */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(.2,.7,.2,1), transform 0.9s cubic-bezier(.2,.7,.2,1); }
+    .reveal.in { opacity: 1; transform: none; }
+    .reveal.d1 { transition-delay: 0.1s; } .reveal.d2 { transition-delay: 0.2s; } .reveal.d3 { transition-delay: 0.3s; }
+
+    @media (max-width: 900px) {
+      .game-grid { grid-template-columns: 1fr; gap: 36px; }
+      .features { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      section.block { padding: 90px 0; }
+    }
+    @media (max-width: 560px) {
+      nav { gap: 16px; } nav a.opt { display: none; }
+      .brand .name { font-size: 0.82rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
 </head>
 <body>
 
-<header class="top">
+<div id="loader">
+  <div class="loader-box">
+    <div class="display">Buscando señal…</div>
+    <div class="loader-bar"><i id="loadbar"></i></div>
+    <small>WILLIAM SOTO GAMES</small>
+  </div>
+</div>
+
+<canvas id="scene"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<header class="top" id="top">
   <div class="wrap">
-    <a class="brand" href="#"><span class="logo"></span> WILLIAM SOTO GAMES</a>
+    <a class="brand" href="#"><span class="logo"></span><span class="name">WILLIAM SOTO GAMES</span></a>
     <nav>
-      <a href="#juegos">Juegos</a>
-      <a href="#estudio" class="hide-sm">Estudio</a>
+      <a href="#juego">Juego</a>
+      <a href="#estudio" class="opt">Estudio</a>
       <a href="#contacto">Contacto</a>
     </nav>
   </div>
 </header>
 
-<section class="hero">
-  <div class="wrap">
-    <span class="tag">Estudio indie de videojuegos</span>
-    <h1>Creamos mundos<br>donde la <span>luz</span><br>es tu arma.</h1>
-    <p class="lead">Somos un estudio independiente que desarrolla juegos 3D para Android, con animaciones cuidadas, atmósferas intensas y mecánicas originales.</p>
-    <div class="btns">
-      <a class="btn primary" href="#juegos">Ver nuestro juego</a>
-      <a class="btn" href="#contacto">Contactar</a>
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow reveal"><span class="dot"></span> Estudio indie · Juegos 3D para Android</span>
+      <h1 class="display reveal d1">Cada <span class="lit">luz</span><br>te delata.</h1>
+      <p class="lead reveal d2">Creamos juegos de acción y supervivencia en 3D con animaciones cinematográficas, atmósferas oscuras y mecánicas que no has jugado antes.</p>
+      <div class="btns reveal d3">
+        <a class="btn primary" href="#juego">▶ Ver Última Señal</a>
+        <a class="btn" href="#contacto">Contactar al estudio</a>
+      </div>
+    </div>
+    <div class="scroll-hint">DESLIZA<i></i></div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div>
+      <span>ÚLTIMA SEÑAL</span><span>★</span><span>SUPERVIVENCIA 3D</span><span>★</span><span>MODO HORIZONTAL</span><span>★</span><span>PRÓXIMAMENTE EN ANDROID</span><span>★</span>
+      <span>ÚLTIMA SEÑAL</span><span>★</span><span>SUPERVIVENCIA 3D</span><span>★</span><span>MODO HORIZONTAL</span><span>★</span><span>PRÓXIMAMENTE EN ANDROID</span><span>★</span>
     </div>
   </div>
-</section>
 
-<section id="juegos" class="alt">
-  <div class="wrap">
-    <h2>Próximo lanzamiento</h2>
-    <p class="sub">Nuestro primer título, en desarrollo para Android.</p>
-    <div class="game">
-      <div class="screen">
-        <div class="city"></div>
-        <div class="antenna"></div>
-        <span class="label">Arte conceptual · Modo horizontal</span>
-      </div>
-      <div>
-        <h3>Última Señal</h3>
-        <div class="status">● En desarrollo · Android</div>
-        <p>La ciudad se apagó y los infectados se sienten atraídos por la luz. Eres un técnico de radio que tiene que reactivar las antenas de la ciudad para pedir rescate, y cada señal que enciendes atrae a la horda.</p>
-        <p style="margin-top:12px">Ilumina, construye, sobrevive. Pero recuerda: <strong style="color:var(--text)">cada luz te delata.</strong></p>
-        <div class="chips">
-          <span class="chip">Supervivencia</span>
-          <span class="chip">Acción 3D</span>
-          <span class="chip">Pantalla horizontal</span>
-          <span class="chip">Un jugador</span>
+  <section class="block solid" id="juego">
+    <div class="wrap">
+      <div class="label reveal">Próximo lanzamiento</div>
+      <h2 class="display reveal d1">Nuestro primer juego</h2>
+      <p class="sub reveal d2">En desarrollo para Android, pensado de principio a fin para jugarse en horizontal.</p>
+
+      <div class="game-grid">
+        <div class="trailer reveal">
+          <canvas id="trailer"></canvas>
+          <div class="hud">
+            <div class="hud-row"><span class="rec">EN VIVO · MOTOR 3D</span><span class="signal-meter"><b></b><b></b><b></b><b></b></span></div>
+            <div class="hud-row"><span class="hud-tag">Escena en tiempo real</span><span class="hud-tag" id="horde">HORDA: 0</span></div>
+          </div>
+        </div>
+        <div class="game-copy reveal d1">
+          <h3 class="display game-title">Última Señal</h3>
+          <div class="status">EN DESARROLLO · ANDROID</div>
+          <p>La ciudad se apagó. Los infectados no persiguen el ruido ni la carne: <strong>persiguen la luz</strong>.</p>
+          <p>Eres un técnico de radio que tiene que reactivar las antenas de la ciudad para pedir rescate. Cada señal que enciendes te acerca a la salvación… y atrae a la horda.</p>
+          <div class="chips">
+            <span class="chip">Supervivencia</span><span class="chip">Acción 3D</span>
+            <span class="chip">Pantalla horizontal</span><span class="chip">Un jugador</span><span class="chip">Sin conexión</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="estudio">
-  <div class="wrap">
-    <h2>Lo que nos define</h2>
-    <p class="sub">Hacemos juegos que se sienten distintos desde el primer minuto.</p>
-    <div class="grid">
-      <div class="card">
-        <div class="ico">🎬</div>
-        <h4>Animación de calidad</h4>
-        <p>Movimientos fluidos, físicas realistas y personajes que reaccionan a cada golpe y a cada paso.</p>
+  <section class="window">
+    <div class="wrap">
+      <div class="quote display reveal">Enciende la antena.<br><span>Sobrevive a la noche.</span></div>
+      <p class="reveal d1">Ilumina, construye y resiste. Pero recuerda que ellos también ven la luz.</p>
+    </div>
+  </section>
+
+  <section class="block solid" id="estudio">
+    <div class="wrap">
+      <div class="label reveal">El estudio</div>
+      <h2 class="display reveal d1">Lo que nos define</h2>
+      <p class="sub reveal d2">No copiamos fórmulas. Diseñamos cada juego para que se sienta distinto desde el primer minuto.</p>
+
+      <div class="features">
+        <div class="card reveal tilt">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg></div>
+          <h3>Animación cinematográfica</h3>
+          <p>Movimientos fluidos, físicas ragdoll y personajes que reaccionan a cada golpe, cada caída y cada paso.</p>
+        </div>
+        <div class="card reveal d1 tilt">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div>
+          <h3>Mecánicas originales</h3>
+          <p>La luz es tu herramienta y tu mayor peligro. Nada de muros en línea: estrategia real en un mundo 3D.</p>
+        </div>
+        <div class="card reveal d2 tilt">
+          <div class="ico"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg></div>
+          <h3>Hecho para móvil</h3>
+          <p>Optimizado para teléfonos de gama media, con controles táctiles cómodos y en formato horizontal.</p>
+        </div>
       </div>
-      <div class="card">
-        <div class="ico">💡</div>
-        <h4>Ideas originales</h4>
-        <p>No copiamos fórmulas: diseñamos mecánicas propias que cambian cómo se juega el género.</p>
-      </div>
-      <div class="card">
-        <div class="ico">📱</div>
-        <h4>Hecho para móvil</h4>
-        <p>Optimizado para que funcione bien incluso en teléfonos de gama media, con controles táctiles cómodos.</p>
+
+      <div class="stats">
+        <div class="stat reveal"><div class="num" data-count="3">0</div><div class="lbl">MOTOR 3D EN TIEMPO REAL</div></div>
+        <div class="stat reveal d1"><div class="num" data-count="5">0</div><div class="lbl">DISTRITOS POR EXPLORAR</div></div>
+        <div class="stat reveal d2"><div class="num" data-count="12">0</div><div class="lbl">TIPOS DE INFECTADOS</div></div>
+        <div class="stat reveal d3"><div class="num" data-count="60">0</div><div class="lbl">FPS OBJETIVO</div></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="contacto" class="alt contact">
-  <div class="wrap">
-    <h2>Contacto</h2>
-    <p class="sub">¿Prensa, colaboraciones o quieres probar el juego antes que nadie? Escríbenos.</p>
-    <a class="btn primary" href="mailto:wiiiamzst20@gmail.com">wiiiamzst20@gmail.com</a>
-  </div>
-</section>
+  <section class="block solid" id="contacto" style="padding-top: 40px;">
+    <div class="wrap">
+      <div class="contact-box reveal">
+        <div class="label">Contacto</div>
+        <h2 class="display">Hablemos</h2>
+        <p class="sub">¿Prensa, colaboraciones o quieres probar el juego antes que nadie? Escríbenos.</p>
+        <a class="btn primary" href="mailto:wiiiamzst20@gmail.com">✉ wiiiamzst20@gmail.com</a>
+      </div>
+    </div>
+  </section>
+</main>
 
 <footer>
   <div class="wrap">
     <span>© <span id="y">2026</span> William Soto Games. Todos los derechos reservados.</span>
-    <span><a href="privacidad.html">Política de privacidad</a><a href="#contacto">Contacto</a></span>
+    <nav><a href="privacidad.html">Política de privacidad</a><a href="#contacto">Contacto</a></nav>
   </div>
 </footer>
 
-<script>document.getElementById("y").textContent = new Date().getFullYear();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  document.getElementById("y").textContent = new Date().getFullYear();
+
+  // Loader
+  var bar = document.getElementById("loadbar"), loader = document.getElementById("loader"), p = 0;
+  var loadTimer = setInterval(function () { p = Math.min(90, p + Math.random() * 18); bar.style.width = p + "%"; }, 120);
+  function finishLoad() { clearInterval(loadTimer); bar.style.width = "100%"; setTimeout(function () { loader.classList.add("done"); }, 350); }
+  window.addEventListener("load", finishLoad);
+  setTimeout(finishLoad, 4000);
+
+  // Header on scroll
+  var header = document.getElementById("top");
+  window.addEventListener("scroll", function () { header.classList.toggle("scrolled", window.scrollY > 40); }, { passive: true });
+
+  // Reveal + counters
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in");
+      var n = e.target.querySelector("[data-count]");
+      if (n && !n.dataset.done) {
+        n.dataset.done = 1;
+        var target = +n.dataset.count, start = performance.now();
+        (function tick(t) {
+          var k = Math.min(1, (t - start) / 1400);
+          n.textContent = Math.round(target * (1 - Math.pow(1 - k, 3)));
+          if (k < 1) requestAnimationFrame(tick);
+        })(start);
+      }
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+  // 3D tilt cards
+  document.querySelectorAll(".tilt").forEach(function (card) {
+    card.addEventListener("mousemove", function (e) {
+      var r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      card.style.transform = "rotateY(" + ((x - 0.5) * 14) + "deg) rotateX(" + ((0.5 - y) * 14) + "deg) translateZ(10px)";
+      card.style.setProperty("--mx", x * 100 + "%"); card.style.setProperty("--my", y * 100 + "%");
+    });
+    card.addEventListener("mouseleave", function () { card.style.transform = ""; });
+  });
+
+  if (!window.THREE) return;
+
+  // ---------- Shared world builder ----------
+  function windowTexture() {
+    var c = document.createElement("canvas"); c.width = 64; c.height = 128;
+    var g = c.getContext("2d"); g.fillStyle = "#000"; g.fillRect(0, 0, 64, 128);
+    for (var y = 6; y < 124; y += 10) for (var x = 5; x < 60; x += 11) {
+      var r = Math.random();
+      if (r > 0.86) { g.fillStyle = Math.random() > 0.5 ? "#ffb347" : "#ffd27a"; g.fillRect(x, y, 6, 5); }
+      else if (r > 0.8) { g.fillStyle = "#2a6b66"; g.fillRect(x, y, 6, 5); }
+    }
+    var t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; return t;
+  }
+
+  function makeZombie() {
+    var skin = new THREE.MeshStandardMaterial({ color: 0x4a5a48, roughness: 0.9 });
+    var cloth = new THREE.MeshStandardMaterial({ color: [0x2a2f3a, 0x3a2a22, 0x23302c][Math.floor(Math.random() * 3)], roughness: 1 });
+    var eye = new THREE.MeshBasicMaterial({ color: 0xff3b4e });
+    var z = new THREE.Group();
+    var torso = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.8, 0.3), cloth); torso.position.y = 1.35; z.add(torso);
+    var head = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.38, 0.34), skin); head.position.y = 0.6; torso.add(head);
+    var e1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 0.02), eye); e1.position.set(-0.08, 0.03, 0.18); head.add(e1);
+    var e2 = e1.clone(); e2.position.x = 0.08; head.add(e2);
+    function limb(w, h, mat, x, y) {
+      var pivot = new THREE.Group(); pivot.position.set(x, y, 0);
+      var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), mat); m.position.y = -h / 2; pivot.add(m); return pivot;
+    }
+    var aL = limb(0.14, 0.7, skin, -0.36, 0.35), aR = limb(0.14, 0.7, skin, 0.36, 0.35);
+    aL.rotation.x = aR.rotation.x = -1.35; torso.add(aL); torso.add(aR);
+    var lL = limb(0.18, 0.95, cloth, -0.15, 0.95), lR = limb(0.18, 0.95, cloth, 0.15, 0.95);
+    z.add(lL); z.add(lR);
+    z.userData = { torso: torso, head: head, aL: aL, aR: aR, lL: lL, lR: lR,
+      speed: 0.6 + Math.random() * 0.7, phase: Math.random() * 10, limp: Math.random() * 0.6 };
+    return z;
+  }
+
+  function buildWorld(scene, opts) {
+    scene.background = new THREE.Color(0x0d1424);
+    scene.fog = new THREE.FogExp2(0x0d1424, opts.fog);
+    scene.add(new THREE.HemisphereLight(0x5a70a0, 0x141010, 0.9));
+    var moon = new THREE.DirectionalLight(0x8fb0ff, 0.6); moon.position.set(-20, 30, -10); scene.add(moon);
+
+    var ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshStandardMaterial({ color: 0x1a1e26, roughness: 1 }));
+    ground.rotation.x = -Math.PI / 2; scene.add(ground);
+
+    // Glowing ring on ground around tower
+    var ring = new THREE.Mesh(new THREE.RingGeometry(5.5, 6, 64), new THREE.MeshBasicMaterial({ color: 0xffb020, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.02; scene.add(ring);
+
+    // City
+    var tex = [windowTexture(), windowTexture(), windowTexture()];
+    for (var i = 0; i < opts.buildings; i++) {
+      var ang = Math.random() * Math.PI * 2, rad = opts.cityStart + Math.random() * 60;
+      var w = 3 + Math.random() * 6, h = 5 + Math.random() * 26, d = 3 + Math.random() * 6;
+      var t = tex[i % 3].clone(); t.needsUpdate = true; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(Math.ceil(w / 3), Math.ceil(h / 6));
+      var b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({
+        color: 0x10141b, roughness: 0.95, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: 0.9 }));
+      b.position.set(Math.cos(ang) * rad, h / 2, Math.sin(ang) * rad); b.rotation.y = Math.random() * Math.PI; scene.add(b);
+    }
+
+    // Antenna tower
+    var tower = new THREE.Group(), steel = new THREE.MeshStandardMaterial({ color: 0x2c333d, metalness: 0.6, roughness: 0.5 });
+    var H = 14;
+    for (var k = 0; k < 4; k++) {
+      var leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, H, 6), steel);
+      var a = k * Math.PI / 2 + Math.PI / 4; leg.position.set(Math.cos(a) * 0.7, H / 2, Math.sin(a) * 0.7);
+      leg.rotation.z = Math.cos(a) * 0.04; leg.rotation.x = -Math.sin(a) * 0.04; tower.add(leg);
+    }
+    for (var s = 1; s < 12; s++) {
+      var brace = new THREE.Mesh(new THREE.TorusGeometry(0.75 - s * 0.03, 0.03, 4, 4), steel);
+      brace.rotation.x = Math.PI / 2; brace.rotation.z = Math.PI / 4; brace.position.y = s * 1.2; tower.add(brace);
+    }
+    var dish = new THREE.Mesh(new THREE.SphereGeometry(0.9, 16, 8, 0, Math.PI * 2, 0, Math.PI / 3), steel);
+    dish.position.set(0.6, 11, 0); dish.rotation.z = -Math.PI / 2.4; tower.add(dish);
+    var beaconMat = new THREE.MeshBasicMaterial({ color: 0xffc04a });
+    var beacon = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), beaconMat); beacon.position.y = H + 0.3; tower.add(beacon);
+    var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffa020, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    halo.scale.set(9, 9, 1); halo.position.y = H + 0.3; tower.add(halo);
+    var light = new THREE.PointLight(0xffa030, 3, 40, 1.6); light.position.y = H; tower.add(light);
+    var groundLight = new THREE.PointLight(0xff8a20, 1.6, 18, 2); groundLight.position.y = 2; tower.add(groundLight);
+
+    // Searchlight beam
+    var beamGeo = new THREE.CylinderGeometry(0.2, 4, 30, 32, 1, true); beamGeo.translate(0, -15, 0);
+    var beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xffc060, transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    beam.position.y = H + 0.3; tower.add(beam);
+    scene.add(tower);
+
+    // Zombies
+    var zombies = [];
+    function place(z, far) {
+      var a = Math.random() * Math.PI * 2, r = far ? 22 + Math.random() * 10 : 8 + Math.random() * 24;
+      z.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+    }
+    for (var n = 0; n < opts.zombies; n++) { var z = makeZombie(); place(z, false); scene.add(z); zombies.push(z); }
+
+    // Ash particles
+    var count = opts.ash, pos = new Float32Array(count * 3);
+    for (var q = 0; q < count; q++) { pos[q * 3] = (Math.random() - 0.5) * 80; pos[q * 3 + 1] = Math.random() * 30; pos[q * 3 + 2] = (Math.random() - 0.5) * 80; }
+    var ashGeo = new THREE.BufferGeometry(); ashGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    var ash = new THREE.Points(ashGeo, new THREE.PointsMaterial({ color: 0xffd9a0, size: 0.12, transparent: true, opacity: 0.7, depthWrite: false }));
+    scene.add(ash);
+
+    var hemi = scene.children[0], flash = 0, reached = 0;
+    return {
+      update: function (t, dt) {
+        var pulse = 0.65 + Math.sin(t * 3) * 0.35;
+        light.intensity = 2 + pulse * 2.5; halo.material.opacity = 0.55 + pulse * 0.45;
+        halo.scale.setScalar(7 + pulse * 3); ring.material.opacity = 0.18 + pulse * 0.25;
+        ring.scale.setScalar(1 + (t * 0.25 % 1) * 0.15);
+        beam.rotation.z = Math.sin(t * 0.5) * 0.9 + 0.2; beam.rotation.y = t * 0.6;
+
+        for (var i = 0; i < zombies.length; i++) {
+          var z = zombies[i], u = z.userData, ph = t * u.speed * 4 + u.phase;
+          var dir = new THREE.Vector3(-z.position.x, 0, -z.position.z), dist = dir.length(); dir.normalize();
+          z.position.addScaledVector(dir, u.speed * dt * (0.8 + Math.sin(ph) * 0.3));
+          z.rotation.y = Math.atan2(dir.x, dir.z) + Math.sin(ph * 0.5) * 0.15;
+          u.lL.rotation.x = Math.sin(ph) * 0.6; u.lR.rotation.x = -Math.sin(ph) * (0.6 - u.limp * 0.5);
+          u.aL.rotation.x = -1.35 + Math.sin(ph + 1) * 0.18; u.aR.rotation.x = -1.35 - Math.sin(ph) * 0.18;
+          u.torso.rotation.z = Math.sin(ph) * 0.12 + u.limp * 0.15; u.torso.rotation.x = 0.25 + Math.abs(Math.sin(ph)) * 0.08;
+          u.torso.position.y = 1.35 + Math.abs(Math.cos(ph)) * 0.06;
+          u.head.rotation.z = Math.sin(ph * 0.7) * 0.25; u.head.rotation.x = -0.2 + Math.sin(ph * 0.3) * 0.15;
+          if (dist < 6.2) { place(z, true); reached++; }
+        }
+
+        var arr = ash.geometry.attributes.position.array;
+        for (var j = 0; j < arr.length; j += 3) {
+          arr[j + 1] -= dt * 0.8; arr[j] += Math.sin(t + j) * dt * 0.3;
+          if (arr[j + 1] < 0) arr[j + 1] = 30;
+        }
+        ash.geometry.attributes.position.needsUpdate = true;
+
+        if (Math.random() < 0.0025) flash = 1;
+        flash *= 0.88; hemi.intensity = 0.9 + flash * 2.2;
+        return zombies.length + reached;
+      }
+    };
+  }
+
+  function glowTexture() {
+    var c = document.createElement("canvas"); c.width = c.height = 128;
+    var g = c.getContext("2d"), grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.2, "rgba(255,200,120,0.6)"); grd.addColorStop(1, "rgba(255,140,0,0)");
+    g.fillStyle = grd; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+  }
+
+  var mobile = window.innerWidth < 768;
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- Background scene ----------
+  var canvas = document.getElementById("scene");
+  var renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !mobile }); } catch (e) { return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 1.75));
+  renderer.setClearColor(0x05070b);
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(55, 1, 0.1, 300);
+  var world = buildWorld(scene, { fog: 0.022, cityStart: 38, buildings: mobile ? 40 : 70, zombies: mobile ? 14 : 26, ash: mobile ? 500 : 1200 });
+
+  function resize() {
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", resize); resize();
+
+  var mouse = { x: 0, y: 0 };
+  window.addEventListener("mousemove", function (e) { mouse.x = e.clientX / window.innerWidth - 0.5; mouse.y = e.clientY / window.innerHeight - 0.5; });
+
+  // ---------- Trailer scene (close-up camera) ----------
+  var tCanvas = document.getElementById("trailer"), tRenderer = null, tScene, tCam, tWorld, tVisible = false;
+  var hordeEl = document.getElementById("horde");
+  try {
+    tRenderer = new THREE.WebGLRenderer({ canvas: tCanvas, antialias: true });
+    tRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); tRenderer.setClearColor(0x05070b);
+    tScene = new THREE.Scene(); tCam = new THREE.PerspectiveCamera(45, 16 / 9, 0.1, 200);
+    tWorld = buildWorld(tScene, { fog: 0.035, cityStart: 24, buildings: 35, zombies: mobile ? 10 : 18, ash: 400 });
+    new IntersectionObserver(function (e) { tVisible = e[0].isIntersecting; }).observe(tCanvas);
+  } catch (e) { tRenderer = null; }
+  function tResize() {
+    if (!tRenderer) return;
+    var w = tCanvas.clientWidth, h = tCanvas.clientHeight; tRenderer.setSize(w, h, false); tCam.aspect = w / h; tCam.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", tResize); tResize();
+
+  var clock = new THREE.Clock(), elapsed = 0;
+  function loop() {
+    var dt = Math.min(clock.getDelta(), 0.05); if (!reduce) elapsed += dt;
+    var scrollK = Math.min(1, window.scrollY / (document.body.scrollHeight - window.innerHeight || 1));
+
+    var ang = elapsed * 0.05 + scrollK * 2.2 + mouse.x * 0.3;
+    var radius = 28 - scrollK * 10, camY = 7 + scrollK * 10 - mouse.y * 3;
+    camera.position.set(Math.sin(ang) * radius, camY, Math.cos(ang) * radius);
+    camera.lookAt(0, 6 + scrollK * 3, 0);
+    world.update(elapsed, reduce ? 0 : dt);
+    renderer.render(scene, camera);
+
+    if (tRenderer && tVisible) {
+      // Cinematic dolly: low angle sweeping past the horde
+      var ta = elapsed * 0.12, tr = 13 + Math.sin(elapsed * 0.3) * 3;
+      tCam.position.set(Math.sin(ta) * tr, 1.6 + Math.sin(elapsed * 0.2) * 0.8, Math.cos(ta) * tr);
+      tCam.lookAt(0, 4 + Math.sin(elapsed * 0.25) * 2, 0);
+      var n = tWorld.update(elapsed, reduce ? 0 : dt);
+      hordeEl.textContent = "HORDA: " + n;
+      tRenderer.render(tScene, tCam);
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+</script>
 </body>
 </html>
